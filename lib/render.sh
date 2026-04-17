@@ -67,7 +67,7 @@ RESET=$'\033[0m'
     printf ' │ %-*s │\n' "$MAX" "$l"
   done
   printf ' ╰%s╮%s╯\n' "$LEFT4" "$RIGHT_REST"
-  printf '      |\n'
+  printf '      │\n'
   printf '%s\n'   "${CHAR_TOP}"
   printf '   %s\n' "$FACE"
   printf '  %s\n'  "$BODY_LINE"

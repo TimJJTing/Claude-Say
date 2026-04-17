@@ -37,8 +37,8 @@ echo "=== render.sh: long message wraps ==="
 render "This is a very long message that should definitely wrap at 45 characters wide" "happy"
 output=$(cat "$TTY_FILE"); > "$TTY_FILE"
 assert_contains "wraps into bubble" "$output" "╭"
-line_count=$(echo "$output" | grep -c "│" || true)
-assert_contains "multiple content lines" "$line_count" "2"
+content_lines=$(echo "$output" | grep -c '^ │ ' || true)
+assert_contains "multiple content lines" "$content_lines" "2"
 
 echo ""
 echo "=== render.sh: no-tty guard ==="
