@@ -12,6 +12,6 @@ get_tool_info() {
     WebFetch|WebSearch)     echo "📡 thinking right" ;;
     Agent)                  echo "🤖 excited right"  ;;
     TodoWrite)              echo "📋 focused left"   ;;
-    *)                      echo " focused "         ;;
+    *)                      echo "none focused none"  ;;
   esac
 }

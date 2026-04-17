@@ -18,11 +18,9 @@ FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev
 
 source "${CLAUDE_PLUGIN_ROOT}/lib/tools.sh"
 read -r PROP MOOD SIDE <<< "$(get_tool_info "$TOOL_NAME")"
-# If MOOD is empty, get_tool_info returned a single-token default (e.g. " focused ")
-# and read placed it in PROP.  Shift it into the correct variable.
-if [[ -z "$MOOD" ]]; then
-  MOOD="$PROP"; PROP=""
-fi
+# tools.sh uses "none" as sentinel for empty prop/side on the default case.
+[[ "$PROP" == "none" ]] && PROP=""
+[[ "$SIDE" == "none" ]] && SIDE=""
 
 # Truncate file path label if > 50 chars
 if [[ -n "$FILE_PATH" ]]; then

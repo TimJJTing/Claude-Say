@@ -29,6 +29,6 @@ assert_eq "Read info"    "$(get_tool_info Read)"       "📖 thinking left"
 assert_eq "Grep info"    "$(get_tool_info Grep)"       "🔍 thinking left"
 assert_eq "Agent info"   "$(get_tool_info Agent)"      "🤖 excited right"
 assert_eq "TodoWrite"    "$(get_tool_info TodoWrite)"  "📋 focused left"
-assert_eq "default info" "$(get_tool_info UnknownTool)" " focused "
+assert_eq "default info" "$(get_tool_info UnknownTool)" "none focused none"
 
 print_summary
