@@ -21,4 +21,5 @@ Rules:
 - Only chatty, conversational replies get a bubble
 </claude-say-protocol>'
 
-printf '{"systemMessage":%s}\n' "$(printf '%s' "$PROTOCOL" | jq -Rs .)"
+printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":%s}}\n' \
+  "$(printf '%s' "$PROTOCOL" | jq -Rs .)"

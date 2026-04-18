@@ -14,7 +14,7 @@ INPUT=$(cat)
 # Require jq for intent parsing. Fall back to the flag-on hint only.
 if ! command -v jq &>/dev/null; then
   [[ -f "$FLAG" ]] || exit 0
-  printf '{"systemMessage":%s}\n' "$(printf '%s' "$HINT" | jq -Rs .)"
+  printf '%s\n' "$HINT"
   exit 0
 fi
 
@@ -43,29 +43,46 @@ fi
 # Non-toggle prompt: keep existing behaviour.
 if [[ -z "$INTENT" ]]; then
   [[ -f "$FLAG" ]] || exit 0
-  printf '{"systemMessage":%s}\n' "$(printf '%s' "$HINT" | jq -Rs .)"
+  printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":%s}}\n' \
+    "$(printf '%s' "$HINT" | jq -Rs .)"
   exit 0
 fi
 
 [[ -f "$FLAG" ]] && CURRENT="on" || CURRENT="off"
 RENDER="${CLAUDE_PLUGIN_ROOT}/lib/render.sh"
 
-render_bubble() {
-  local msg="$1" mood="$2"
-  [[ -f "$RENDER" ]] && bash "$RENDER" "$msg" "$mood" 2>/dev/null || true
+# Capture the rendered bubble into a string. Writing to /dev/tty gets clobbered
+# when Claude Code's TUI redraws its dynamic region; systemMessage lands in
+# permanent scrollback instead.
+capture_bubble() {
+  local msg="$1" mood="$2" tmp bubble
+  [[ -f "$RENDER" ]] || { printf ''; return; }
+  tmp=$(mktemp)
+  CLAUDE_SAY_TTY="$tmp" bash "$RENDER" "$msg" "$mood" 2>/dev/null || true
+  bubble=$(cat "$tmp" 2>/dev/null || true)
+  rm -f "$tmp"
+  printf '%s' "$bubble"
 }
 
+# $1 = reason (blocks Claude's turn), $2 = optional systemMessage (bubble)
 emit_block() {
-  # Suppresses Claude's turn entirely; the rendered bubble is the confirmation.
-  jq -n --arg r "$1" '{decision:"block", reason:$r}'
+  local reason="$1" sysmsg="${2:-}"
+  if [[ -n "$sysmsg" ]]; then
+    jq -n --arg r "$reason" --arg m "$sysmsg" \
+      '{decision:"block", reason:$r, systemMessage:$m}'
+  else
+    jq -n --arg r "$reason" '{decision:"block", reason:$r}'
+  fi
 }
 
 case "$INTENT" in
   status)
     if [[ "$CURRENT" == "on" ]]; then
-      render_bubble "claude-say is on" "happy"
+      BUBBLE=$(capture_bubble "claude-say is on" "happy")
+      emit_block "claude-say is on." "$BUBBLE"
+    else
+      emit_block "claude-say is off."
     fi
-    emit_block "claude-say is ${CURRENT}."
     ;;
   on)
     if [[ "$CURRENT" == "on" ]]; then
@@ -73,8 +90,8 @@ case "$INTENT" in
     else
       mkdir -p "$(dirname "$FLAG")"
       touch "$FLAG"
-      render_bubble "claude-say is now on!" "excited"
-      emit_block "claude-say turned on."
+      BUBBLE=$(capture_bubble "claude-say is now on!" "excited")
+      emit_block "claude-say turned on." "$BUBBLE"
     fi
     ;;
   off)
@@ -92,8 +109,8 @@ case "$INTENT" in
     else
       mkdir -p "$(dirname "$FLAG")"
       touch "$FLAG"
-      render_bubble "claude-say toggled on!" "excited"
-      emit_block "claude-say toggled on."
+      BUBBLE=$(capture_bubble "claude-say toggled on!" "excited")
+      emit_block "claude-say toggled on." "$BUBBLE"
     fi
     ;;
 esac

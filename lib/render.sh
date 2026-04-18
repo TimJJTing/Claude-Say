@@ -57,11 +57,8 @@ TOP_BORDER=$(printf '─%.0s' $(seq 1 $((INNER + 2))))
 LEFT4=$(printf '─%.0s' $(seq 1 4))
 RIGHT_REST=$(printf '─%.0s' $(seq 1 $((INNER - 2))))
 
-CYAN=$'\033[0;36m'
-RESET=$'\033[0m'
-
 {
-  printf '\n%s' "$CYAN"
+  printf '\n'
   printf ' ╭%s╮\n' "$TOP_BORDER"
   for l in "${LINES[@]+"${LINES[@]}"}"; do
     printf ' │ %-*s │\n' "$MAX" "$l"
@@ -72,5 +69,4 @@ RESET=$'\033[0m'
   printf '   %s\n' "$FACE"
   printf '  %s\n'  "$BODY_LINE"
   printf '%s\n'   "${CHAR_BOTTOM}"
-  printf '%s\n' "$RESET"
 } > "$TTY"

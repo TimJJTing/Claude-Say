@@ -33,12 +33,15 @@ assert_eq "returns approve when flag absent" "$out" '{"decision":"approve"}'
 assert_eq "no tty output when flag absent" "$(cat "$TTY_FILE")" ""
 
 echo ""
-echo "=== stop.sh: flag present, tag found → renders + approves ==="
+echo "=== stop.sh: flag present, tag found → emits systemMessage bubble ==="
 mkdir -p "$(dirname "$FLAG")"; touch "$FLAG"
 TRANSCRIPT=$(make_transcript 'Great job! <claude-say mood="excited">All 3 tests pass!</claude-say>')
 out=$(run_stop "$TRANSCRIPT")
-assert_eq "returns approve" "$out" '{"decision":"approve"}'
-assert_contains "renders bubble to tty" "$(cat "$TTY_FILE")" "All 3 tests pass!"
+assert_contains "returns approve decision" "$out" '"decision": "approve"'
+assert_contains "emits systemMessage key" "$out" '"systemMessage"'
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage' 2>/dev/null || true)
+assert_contains "bubble content in systemMessage" "$parsed" "All 3 tests pass!"
+assert_eq "no direct tty write" "$(cat "$TTY_FILE")" ""
 > "$TTY_FILE"
 rm -f "$TRANSCRIPT"
 
@@ -53,8 +56,9 @@ rm -f "$TRANSCRIPT"
 echo ""
 echo "=== stop.sh: multiple tags → uses last one ==="
 TRANSCRIPT=$(make_transcript 'First <claude-say mood="happy">first msg</claude-say> then <claude-say mood="excited">second msg</claude-say>')
-run_stop "$TRANSCRIPT" > /dev/null
-assert_contains "last tag wins" "$(cat "$TTY_FILE")" "second msg"
+out=$(run_stop "$TRANSCRIPT")
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage' 2>/dev/null || true)
+assert_contains "last tag wins" "$parsed" "second msg"
 > "$TTY_FILE"
 rm -f "$TRANSCRIPT"
 
@@ -72,25 +76,26 @@ mkdir -p "$(dirname "$FLAG")"; touch "$FLAG"
 out=$(printf '{"tool_name":"Read","tool_input":{"file_path":"src/main.py"}}' \
   | bash "$PLUGIN_ROOT/hooks/scripts/pre-tool-use.sh")
 assert_contains "returns allow" "$out" '"permissionDecision":"allow"'
-assert_contains "renders figure to tty" "$(cat "$TTY_FILE")" "( ._.  )"
-assert_contains "shows prop on left" "$(cat "$TTY_FILE")" "📖="
-> "$TTY_FILE"
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage // ""' 2>/dev/null || true)
+assert_contains "renders figure in systemMessage" "$parsed" "( ._.  )"
+assert_contains "shows prop on left" "$parsed" "📖="
+assert_eq "no direct tty write" "$(cat "$TTY_FILE")" ""
 
 echo ""
 echo "=== pre-tool-use.sh: path > 50 chars truncated ==="
 LONG="src/very/deep/path/to/some/really/quite/long/file.py"
-printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$LONG" \
-  | bash "$PLUGIN_ROOT/hooks/scripts/pre-tool-use.sh" > /dev/null
-assert_contains "truncates long path" "$(cat "$TTY_FILE")" "…"
-> "$TTY_FILE"
+out=$(printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$LONG" \
+  | bash "$PLUGIN_ROOT/hooks/scripts/pre-tool-use.sh")
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage // ""' 2>/dev/null || true)
+assert_contains "truncates long path" "$parsed" "…"
 
 echo ""
 echo "=== pre-tool-use.sh: unknown tool uses default ==="
 out=$(printf '{"tool_name":"SomeUnknownTool","tool_input":{}}' \
   | bash "$PLUGIN_ROOT/hooks/scripts/pre-tool-use.sh")
 assert_contains "returns allow for unknown" "$out" '"permissionDecision":"allow"'
-assert_contains "renders figure" "$(cat "$TTY_FILE")" "( -.-  )"
-> "$TTY_FILE"
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage // ""' 2>/dev/null || true)
+assert_contains "renders figure" "$parsed" "( -.-  )"
 
 echo ""
 echo "=== session-start.sh: flag absent → empty output ==="
@@ -99,14 +104,15 @@ out=$(printf '{}' | bash "$PLUGIN_ROOT/hooks/scripts/session-start.sh")
 assert_eq "empty when flag absent" "$out" ""
 
 echo ""
-echo "=== session-start.sh: flag present → systemMessage JSON ==="
+echo "=== session-start.sh: flag present → additionalContext JSON ==="
 mkdir -p "$(dirname "$FLAG")"; touch "$FLAG"
 out=$(printf '{}' | bash "$PLUGIN_ROOT/hooks/scripts/session-start.sh")
-assert_contains "outputs systemMessage key"     "$out" '"systemMessage"'
+assert_contains "outputs additionalContext key" "$out" '"additionalContext"'
+assert_contains "hook event is SessionStart"    "$out" '"SessionStart"'
 assert_contains "contains protocol open tag"    "$out" 'claude-say-protocol'
 assert_contains "contains mood instructions"    "$out" 'happy'
-parsed=$(printf '%s' "$out" | jq -r '.systemMessage' 2>/dev/null || true)
-assert_contains "valid JSON with systemMessage" "$parsed" "claude-say-protocol"
+parsed=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' 2>/dev/null || true)
+assert_contains "valid JSON with additionalContext" "$parsed" "claude-say-protocol"
 
 echo ""
 echo "=== prompt-submit.sh: flag absent, non-toggle prompt → empty ==="
@@ -118,9 +124,10 @@ echo ""
 echo "=== prompt-submit.sh: flag present, non-toggle prompt → compact reminder JSON ==="
 mkdir -p "$(dirname "$FLAG")"; touch "$FLAG"
 out=$(printf '{"prompt":"how are you"}' | bash "$PLUGIN_ROOT/hooks/scripts/prompt-submit.sh")
-assert_contains "outputs systemMessage key" "$out" '"systemMessage"'
-assert_contains "contains tag hint"         "$out" 'claude-say'
-parsed=$(printf '%s' "$out" | jq -r '.systemMessage' 2>/dev/null || true)
+assert_contains "outputs additionalContext key" "$out" '"additionalContext"'
+assert_contains "hook event is UserPromptSubmit" "$out" '"UserPromptSubmit"'
+assert_contains "contains tag hint"              "$out" 'claude-say'
+parsed=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.additionalContext' 2>/dev/null || true)
 assert_contains "valid JSON" "$parsed" "claude-say"
 
 echo ""
@@ -131,7 +138,9 @@ assert_contains "returns block decision" "$out" '"decision": "block"'
 assert_contains "reason mentions turned on" "$out" "turned on"
 [[ -f "$FLAG" ]] && flag_exists="yes" || flag_exists="no"
 assert_eq "flag file created" "$flag_exists" "yes"
-assert_contains "renders confirmation bubble" "$(cat "$TTY_FILE")" "now on"
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage // ""' 2>/dev/null || true)
+assert_contains "renders confirmation bubble in systemMessage" "$parsed" "now on"
+assert_eq "no direct tty write" "$(cat "$TTY_FILE")" ""
 
 echo ""
 echo "=== prompt-submit.sh: 'turn on claude-say' when already on → already-on block, no bubble ==="
@@ -139,7 +148,8 @@ echo "=== prompt-submit.sh: 'turn on claude-say' when already on → already-on 
 out=$(printf '{"prompt":"turn on claude-say"}' | bash "$PLUGIN_ROOT/hooks/scripts/prompt-submit.sh")
 assert_contains "returns block" "$out" '"decision": "block"'
 assert_contains "reason mentions already on" "$out" "already on"
-assert_eq "no bubble re-rendered" "$(cat "$TTY_FILE")" ""
+parsed=$(printf '%s' "$out" | jq -r '.systemMessage // ""' 2>/dev/null || true)
+assert_eq "no bubble re-rendered in systemMessage" "$parsed" ""
 
 echo ""
 echo "=== prompt-submit.sh: 'disable claude-say' → removes flag + block ==="
@@ -183,7 +193,7 @@ echo ""
 echo "=== prompt-submit.sh: loose phrasing falls through to reminder, does not toggle ==="
 touch "$FLAG"  # flag on so the reminder branch emits something
 out=$(printf '{"prompt":"hey can you flip claude-say on for me"}' | bash "$PLUGIN_ROOT/hooks/scripts/prompt-submit.sh")
-assert_contains "falls through to reminder" "$out" '"systemMessage"'
+assert_contains "falls through to reminder" "$out" '"additionalContext"'
 # Flag state must be unchanged by a fall-through.
 [[ -f "$FLAG" ]] && flag_exists="yes" || flag_exists="no"
 assert_eq "flag state unchanged" "$flag_exists" "yes"

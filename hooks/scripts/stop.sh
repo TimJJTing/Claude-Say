@@ -47,7 +47,17 @@ if [[ -n "$TAG" ]]; then
 
   RENDER="${CLAUDE_PLUGIN_ROOT}/lib/render.sh"
   if [[ -f "$RENDER" ]]; then
-    bash "$RENDER" "$MSG" "$MOOD" 2>/dev/null || true
+    # Capture render into temp file so we can emit as systemMessage.
+    # Writing to /dev/tty gets clobbered when Claude Code's TUI redraws its
+    # dynamic region; systemMessage lands in permanent scrollback instead.
+    TMP=$(mktemp)
+    CLAUDE_SAY_TTY="$TMP" bash "$RENDER" "$MSG" "$MOOD" 2>/dev/null || true
+    BUBBLE=$(cat "$TMP" 2>/dev/null || true)
+    rm -f "$TMP"
+    if [[ -n "$BUBBLE" ]]; then
+      jq -n --arg m "$BUBBLE" '{decision:"approve", systemMessage:$m}'
+      exit 0
+    fi
   fi
 fi
 

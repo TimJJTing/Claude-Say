@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ALLOW='{"hookSpecificOutput":{"permissionDecision":"allow"}}'
+ALLOW='{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
 FLAG="${CLAUDE_PROJECT_DIR}/.claude/.claude-say-active"
 [[ -f "$FLAG" ]] || { printf '%s\n' "$ALLOW"; exit 0; }
 
@@ -35,7 +35,18 @@ fi
 
 RENDER="${CLAUDE_PLUGIN_ROOT}/lib/render.sh"
 if [[ -f "$RENDER" ]]; then
-  bash "$RENDER" "$LABEL" "$MOOD" "$PROP" "$SIDE" 2>/dev/null || true
+  # Capture render into temp file so we can emit as systemMessage.
+  # Writing to /dev/tty gets clobbered when Claude Code's TUI redraws its
+  # dynamic region; systemMessage lands in permanent scrollback instead.
+  TMP=$(mktemp)
+  CLAUDE_SAY_TTY="$TMP" bash "$RENDER" "$LABEL" "$MOOD" "$PROP" "$SIDE" 2>/dev/null || true
+  BUBBLE=$(cat "$TMP" 2>/dev/null || true)
+  rm -f "$TMP"
+  if [[ -n "$BUBBLE" ]]; then
+    jq -cn --arg m "$BUBBLE" \
+      '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow"}, systemMessage:$m}'
+    exit 0
+  fi
 fi
 
 printf '%s\n' "$ALLOW"
