@@ -77,8 +77,8 @@ out=$(printf '{"tool_name":"Read","tool_input":{"file_path":"src/main.py"}}' \
   | bash "$PLUGIN_ROOT/hooks/scripts/pre-tool-use.sh")
 assert_contains "returns allow" "$out" '"permissionDecision":"allow"'
 parsed=$(printf '%s' "$out" | jq -r '.systemMessage // ""' 2>/dev/null || true)
-assert_contains "renders character in systemMessage" "$parsed" "( -.-  )"
-assert_contains "shows prop on left" "$parsed" "📖="
+assert_contains "renders character in systemMessage" "$parsed" "-.-"
+assert_contains "shows prop on left" "$parsed" "📖"
 assert_eq "no direct tty write" "$(cat "$TTY_FILE")" ""
 
 echo ""

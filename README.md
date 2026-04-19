@@ -5,28 +5,36 @@ A Claude Code plugin that renders conversational replies as ASCII character spee
 ```
 ⏺ Skill(claudesay:claudesay)
   ⎿  PreToolUse:Skill says:
-      ╭────────╮
-      │ Skill  │
-      ╰────┬───╯
-           │
-         /\__/\
-        ( ^▽^  )
-      🍳=( ,,,, )m
-         ||   ||`~~>
-        (_)  (_)
+       ╭─────────╮
+       │ Skill   │
+       ╰─────┬───╯
+             │
+           /\___/\
+
+          ( ^▽^ )
+
+         🍳 (,,,) m
+
+
+           ||   ||`~~>
+          (_)  (_)
 
 ⏺ Update(README.md)
   ⎿  PreToolUse:Edit says:
-      ╭───────────────────────────────────────────────╮
-      │ Edit →                                        │
-      │ /path/to/codebase/README.md                   │
-      ╰────┬──────────────────────────────────────────╯
-           │
-         /\__/\
-        ( -.-  )
-      🔧=( ,,,, )m
-         ||   ||`~~>
-        (_)  (_)
+       ╭─────────────────────────────╮
+       │ Edit →                      │
+       │ /path/to/codebase/README.md │
+       ╰─────┬───────────────────────╯
+             │
+           /\___/\
+
+          ( -.- )
+
+         🔧 (,,,) m
+
+
+           ||   ||`~~>
+          (_)  (_)
 
 ```
 
@@ -90,33 +98,80 @@ Loose phrasing ("flip claudesay on, would ya?") will fall through to Claude. In 
 
 ## Character Customization
 
-Create `~/.claude/claudesay/character.sh` and export any subset of these variables — missing ones fall back to defaults:
+The character is laid out on a fixed **3×3 grid of cells** (15 cols × 9 rows total). Each cell is its own variable — override just the parts you want; missing cells fall back to defaults.
+
+```
+  ┌─────┬─────┬─────┐
+  │ TL  │  T  │ TR  │  rows 0-1   ← top is 5×2
+  │     │ FACE│     │  row  2     ← face is 5×1 (mood-specific)
+  ├─────┼─────┼─────┤
+  │  L  │  B  │  R  │  rows 3-5
+  ├─────┼─────┼─────┤
+  │ BL  │ BT  │ BR  │  rows 6-8
+  └─────┴─────┴─────┘
+```
+
+Create `~/.claude/claudesay/character.sh` and override any subset:
 
 ```bash
-CHAR_FACE_HAPPY_A="( ^ᵕ^  )"
-CHAR_FACE_HAPPY_B="( ᵕ‿ᵕ  )"
-CHAR_FACE_EXCITED_A="( ^▽^  )"
-CHAR_FACE_EXCITED_B="( ≧▽≦  )"
-CHAR_FACE_THINKING="( ._.  )"
-CHAR_FACE_FOCUSED="( -.-  )"
-CHAR_FACE_UPSET="( >_<  )"
-CHAR_FACE_ERROR="( x_x  )"
-CHAR_TOP="    /\\__/\\"
-CHAR_BODY="( ,,,, )"
-CHAR_HAND_LEFT="m"
-CHAR_HAND_RIGHT="m"
-CHAR_BOTTOM="    ||   ||\`~~>
-   (_)  (_)"
+# Faces (5 chars × 1 line each)
+CHAR_FACE_HAPPY_A=" ^ᵕ^ "
+CHAR_FACE_HAPPY_B=" ᵕ‿ᵕ "
+CHAR_FACE_EXCITED_A=" ^▽^ "
+CHAR_FACE_EXCITED_B=" ≧▽≦ "
+CHAR_FACE_THINKING=" ._. "
+CHAR_FACE_FOCUSED=" -.- "
+CHAR_FACE_UPSET=" >_< "
+CHAR_FACE_ERROR=" x_x "
+
+# Grid cells (5 chars wide; height per layout above)
+CHAR_TOP_LEFT="
+
+    ("
+CHAR_TOP="/\\___"
+CHAR_TOP_RIGHT="/\\
+
+)"
+CHAR_LEFT="
+   m"
+CHAR_BODY="
+(,,,)"
+CHAR_RIGHT="
+ m"
+CHAR_BOTTOM_LEFT="
+    |
+   (_"
+CHAR_BOTTOM="
+|   |
+)  (_"
+CHAR_BOTTOM_RIGHT="
+|\`~~>
+)"
+```
+
+Cells shorter than the spec are right-padded with spaces and bottom-padded with blank rows automatically — write only the lines that matter.
+
+### Preview Script
+
+Iterate on your character without round-tripping through Claude Code:
+
+```bash
+# Cycle every mood × {no prop, prop-left, prop-right}
+bash bin/preview.sh
+
+# Single mood
+bash bin/preview.sh focused
+
+# Mood holding a prop
+bash bin/preview.sh excited 🪄 right
+
+# Debug mode, will color each cell to help you with alignment
+bash bin/preview.sh --debug
 ```
 
 ### Props
 
-During tool calls the character holds a context-specific emoji prop. The prop replaces the hand on the active side, producing one of two layouts:
-
-```
-# prop on the left hand             # prop on the right hand
-🔧=( ,,,, )m                          m( ,,,, )=🪄
-```
+During tool calls the character holds a context-specific emoji prop. The prop replaces the **left or right cell** of the middle row depending on the tool. Other cells (body, opposite hand) stay intact.
 
 The prop is determined by the tool name; tools with no suitable hand-holdable prop render with both hands as normal. The current assignments are:
 

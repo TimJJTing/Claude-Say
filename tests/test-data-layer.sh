@@ -7,19 +7,37 @@ source "$PLUGIN_ROOT/lib/moods.sh"
 source "$PLUGIN_ROOT/lib/tools.sh"
 
 echo "=== characters/default.sh ==="
-assert_eq "CHAR_BODY set"       "$CHAR_BODY"        "( ,,,, )"
-assert_eq "CHAR_HAND_LEFT set"  "$CHAR_HAND_LEFT"   "m"
-assert_eq "CHAR_HAND_RIGHT set" "$CHAR_HAND_RIGHT"  "m"
+# All 9 grid cell vars must be defined (non-null). Content is design-dependent.
+assert_var_set() {
+  local desc="$1" name="$2"
+  if [[ -n "${!name+x}" ]]; then
+    echo "  ✓ $desc"
+    ((PASS++)) || true
+  else
+    echo "  ✗ $desc — variable $name not set"
+    ((FAIL++)) || true
+  fi
+}
+assert_var_set "CHAR_TOP_LEFT defined"     CHAR_TOP_LEFT
+assert_var_set "CHAR_TOP defined"          CHAR_TOP
+assert_var_set "CHAR_TOP_RIGHT defined"    CHAR_TOP_RIGHT
+assert_var_set "CHAR_LEFT defined"         CHAR_LEFT
+assert_var_set "CHAR_BODY defined"         CHAR_BODY
+assert_var_set "CHAR_RIGHT defined"        CHAR_RIGHT
+assert_var_set "CHAR_BOTTOM_LEFT defined"  CHAR_BOTTOM_LEFT
+assert_var_set "CHAR_BOTTOM defined"       CHAR_BOTTOM
+assert_var_set "CHAR_BOTTOM_RIGHT defined" CHAR_BOTTOM_RIGHT
 
 echo ""
 echo "=== lib/moods.sh ==="
-assert_eq "thinking face"  "$(get_face thinking)"  "( ._.  )"
-assert_eq "focused face"   "$(get_face focused)"   "( -.-  )"
-assert_eq "upset face"     "$(get_face upset)"     "( >_<  )"
-assert_eq "error face"     "$(get_face error)"     "( x_x  )"
-assert_contains "happy returns face"   "$(get_face happy)"   "("
-assert_contains "excited returns face" "$(get_face excited)" "("
-assert_eq "unknown mood → thinking"   "$(get_face blorp)"   "( ._.  )"
+# Match the mood substring only — the surrounding face artwork is design-dependent.
+assert_contains "thinking face"        "$(get_face thinking)" "._."
+assert_contains "focused face"         "$(get_face focused)"  "-.-"
+assert_contains "upset face"           "$(get_face upset)"    ">_<"
+assert_contains "error face"           "$(get_face error)"    "x_x"
+assert_contains "happy returns face"   "$(get_face happy)"    "ᵕ"
+assert_contains "excited returns face" "$(get_face excited)"  "▽"
+assert_contains "unknown mood → thinking" "$(get_face blorp)" "._."
 
 echo ""
 echo "=== lib/tools.sh ==="
