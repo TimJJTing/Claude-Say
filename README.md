@@ -49,7 +49,7 @@ All rendering is pure Bash — the script draws a Unicode box around the message
 - macOS or Linux (interactive terminal required — no CI/Docker support)
 - `jq` installed (`brew install jq` / `apt install jq`)
 
-## Install (WIP)
+## Install
 
 Register this repo as a marketplace, then install the plugin.
 
@@ -59,16 +59,16 @@ claude plugin marketplace add TimJJTing/claudesay
 claude plugin install claudesay@claudesay
 ```
 
-Restart your Claude Code session for the hooks to take effect.
-
-Verify it loaded:
+Verify it loaded (optional):
 
 ```bash
 grep claudesay ~/.claude/settings.json                    # enabledPlugins entry
 grep claudesay ~/.claude/plugins/installed_plugins.json   # install record
 ```
 
-If you commit your `.claude/` directory, you'll probably want to ignore the flag file so it doesn't get checked in:
+Restart your Claude Code session for the hooks to take effect.
+
+If you commit your project's `.claude/` directory, you should probably ignore the flag file so it doesn't get checked in:
 
 ```bash
 # .gitignore
@@ -145,11 +145,11 @@ The prop is determined by the tool name; tools with no suitable hand-holdable pr
 
 All behavior is in hooks (declared inline in `.claude-plugin/plugin.json`):
 
-| Hook               | Script                           | Responsibility                                                                             |
-| ------------------ | -------------------------------- | ------------------------------------------------------------------------------------------ |
+| Hook               | Script                           | Responsibility                                                                            |
+| ------------------ | -------------------------------- | ----------------------------------------------------------------------------------------- |
 | `SessionStart`     | `hooks/scripts/session-start.sh` | Injects the `<claudesay-protocol>` instruction as additional context when the flag is on. |
-| `UserPromptSubmit` | `hooks/scripts/prompt-submit.sh` | Handles toggle/status intents in-hook; emits the per-turn reminder on other prompts.       |
-| `PreToolUse`       | `hooks/scripts/pre-tool-use.sh`  | Renders the tool-holding character before each tool call.                                     |
+| `UserPromptSubmit` | `hooks/scripts/prompt-submit.sh` | Handles toggle/status intents in-hook; emits the per-turn reminder on other prompts.      |
+| `PreToolUse`       | `hooks/scripts/pre-tool-use.sh`  | Renders the tool-holding character before each tool call.                                 |
 | `Stop`             | `hooks/scripts/stop.sh`          | Parses the `<claudesay>` tag from the JSONL transcript and renders the speech bubble.     |
 
 The skill at `skills/claudesay/SKILL.md` is documentation/fallback only — it does not run Bash.
