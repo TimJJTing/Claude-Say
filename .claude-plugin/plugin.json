@@ -1,8 +1,8 @@
 {
   "name": "claudesay",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Renders Claude replies as ASCII character speech bubbles",
-  "author": { "name": "jjting" },
+  "author": { "name": "TimJJTing" },
   "license": "MIT",
   "hooks": {
     "SessionStart":     [{ "hooks": [{ "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh" }] }],
