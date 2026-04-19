@@ -51,11 +51,11 @@ All rendering is pure Bash — the script draws a Unicode box around the message
 
 ## Install (WIP)
 
-Claude Code plugins load through the marketplace system — dropping the folder into your project is not enough. Register this repo as a local marketplace, then install the plugin.
+Register this repo as a marketplace, then install the plugin.
 
 ```bash
 # From inside the repo checkout:
-claude plugin marketplace add "$(pwd)"
+claude plugin marketplace add TimJJTing/claudesay
 claude plugin install claudesay@claudesay
 ```
 
@@ -68,9 +68,10 @@ grep claudesay ~/.claude/settings.json                    # enabledPlugins entry
 grep claudesay ~/.claude/plugins/installed_plugins.json   # install record
 ```
 
-If you commit your `.claude/` directory, add the flag file to your project's `.gitignore` so it doesn't get checked in:
+If you commit your `.claude/` directory, you'll probably want to ignore the flag file so it doesn't get checked in:
 
-```
+```bash
+# .gitignore
 .claude/.claudesay-active
 ```
 
@@ -198,7 +199,5 @@ Stacks naturally with the [caveman plugin](https://github.com/JuliusBrussee/cave
 Run the test suite locally:
 
 ```bash
-bash tests/test-data-layer.sh
-bash tests/test-render.sh
-bash tests/test-hooks.sh
+bash tests/run-all.sh
 ```
