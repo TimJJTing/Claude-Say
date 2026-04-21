@@ -30,6 +30,17 @@ assert_contains() {
   fi
 }
 
+assert_var_set() {
+  local desc="$1" name="$2"
+  if [[ -n "${!name+x}" ]]; then
+    echo "  ✓ $desc"
+    ((PASS++)) || true
+  else
+    echo "  ✗ $desc — variable $name not set"
+    ((FAIL++)) || true
+  fi
+}
+
 print_summary() {
   echo ""
   echo "Results: $PASS passed, $FAIL failed"

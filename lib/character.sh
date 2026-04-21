@@ -13,11 +13,14 @@
 # _display_width <string>
 # Returns display column count. Adds 1 extra col per 4-byte char (emoji) since
 # wc -m counts codepoints but supplementary-plane emoji are 2 cols wide.
+# Strips variation selector U+FE0F (EF B8 8F) first — it is zero-width but
+# adds a codepoint and bytes that would otherwise inflate the estimate.
 _display_width() {
   local s="$1"
-  local clen blen
-  clen=$(printf '%s' "$s" | wc -m | tr -d ' ')
-  blen=$(printf '%s' "$s" | wc -c | tr -d ' ')
+  local stripped clen blen
+  stripped=$(printf '%s' "$s" | LC_ALL=C sed 's/\xef\xb8\x8f//g')
+  clen=$(printf '%s' "$stripped" | wc -m | tr -d ' ')
+  blen=$(printf '%s' "$stripped" | wc -c | tr -d ' ')
   printf '%d' $(( clen + (blen - clen) / 3 ))
 }
 
@@ -94,11 +97,14 @@ assemble_character() {
   local ch=${CHAR_CELL_HEIGHT:-3}
   local th=${CHAR_TOP_HEIGHT:-2}
 
+  # TL/TR span CHAR_TOP_HEIGHT rows plus 1 face row; they are independent of CHAR_CELL_HEIGHT.
+  local top_h=$(( th + 1 ))
+
   local tl top tr fc lc bc rc bl bt br
-  tl=$(_color_lines  "$(_pad_cell "${CHAR_TOP_LEFT:-}"      $sw $ch)" 41)
-  top=$(_color_lines "$(_pad_cell "${CHAR_TOP:-}"           $cw $th)" 42)
-  tr=$(_color_lines  "$(_pad_cell "${CHAR_TOP_RIGHT:-}"     $sw $ch)" 43)
-  fc=$(_color_lines  "$(_pad_cell "$face"                   $cw 1)"  45)
+  tl=$(_color_lines  "$(_pad_cell "${CHAR_TOP_LEFT:-}"      $sw $top_h)" 41)
+  top=$(_color_lines "$(_pad_cell "${CHAR_TOP:-}"           $cw $th)"    42)
+  tr=$(_color_lines  "$(_pad_cell "${CHAR_TOP_RIGHT:-}"     $sw $top_h)" 43)
+  fc=$(_color_lines  "$(_pad_cell "$face"                   $cw 1)"      45)
   if [[ -n "$prop" && "$side" == "left" ]]; then
     local _expanded; eval "_expanded=\"${CHAR_PROP_LEFT}\""
     lc=$(_color_lines "$(_pad_cell "$_expanded"             $sw $ch)" 44)
@@ -128,13 +134,15 @@ assemble_character() {
   _read_lines BT  "$bt"
   _read_lines BR  "$br"
 
-  printf '%s%s%s\n' "${TL[0]}" "${TOP[0]}" "${TR[0]}"
-  printf '%s%s%s\n' "${TL[1]}" "${TOP[1]}" "${TR[1]}"
-  printf '%s%s%s\n' "${TL[2]}" "${FC[0]}"  "${TR[2]}"
-  printf '%s%s%s\n' "${L[0]}"  "${B[0]}"   "${R[0]}"
-  printf '%s%s%s\n' "${L[1]}"  "${B[1]}"   "${R[1]}"
-  printf '%s%s%s\n' "${L[2]}"  "${B[2]}"   "${R[2]}"
-  printf '%s%s%s\n' "${BL[0]}" "${BT[0]}"  "${BR[0]}"
-  printf '%s%s%s\n' "${BL[1]}" "${BT[1]}"  "${BR[1]}"
-  printf '%s%s%s\n' "${BL[2]}" "${BT[2]}"  "${BR[2]}"
+  local i
+  for ((i=0; i<th; i++)); do
+    printf '%s%s%s\n' "${TL[$i]}" "${TOP[$i]}" "${TR[$i]}"
+  done
+  printf '%s%s%s\n' "${TL[$th]}" "${FC[0]}" "${TR[$th]}"
+  for ((i=0; i<ch; i++)); do
+    printf '%s%s%s\n' "${L[$i]}" "${B[$i]}" "${R[$i]}"
+  done
+  for ((i=0; i<ch; i++)); do
+    printf '%s%s%s\n' "${BL[$i]}" "${BT[$i]}" "${BR[$i]}"
+  done
 }

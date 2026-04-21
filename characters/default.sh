@@ -5,20 +5,23 @@
 # Grid layout (18 cols × 9 rows total):
 #
 #   ┌─────┬────────┬─────┐
-#   │ TL  │  TOP   │ TR  │  rows 0-1  (TL/TR 5×3, TOP 8×2)
-#   │     │  FACE  │     │  row  2    (FACE 8×1)
+#   │ TL  │  TOP   │ TR  │  CHAR_TOP_HEIGHT rows  (default 2)
+#   │     │  FACE  │     │  1 row  (always)
 #   ├─────┼────────┼─────┤
-#   │  L  │  BODY  │  R  │  rows 3-5  (L/R 5×3, BODY 8×3)
+#   │  L  │  BODY  │  R  │  CHAR_CELL_HEIGHT rows  (default 3)
 #   ├─────┼────────┼─────┤
-#   │ BL  │  BOT   │ BR  │  rows 6-8  (BL/BR 5×3, BOT 8×3)
+#   │ BL  │  BOT   │ BR  │  CHAR_CELL_HEIGHT rows  (default 3)
 #   └─────┴────────┴─────┘
 #
-# Override CHAR_SIDE_WIDTH, CHAR_CENTER_WIDTH, CHAR_CELL_HEIGHT, or CHAR_TOP_HEIGHT
-# in your user character.sh to change grid proportions without touching assembly code.
+# TL/TR span CHAR_TOP_HEIGHT+1 rows (TOP rows + face row). They are independent
+# of CHAR_CELL_HEIGHT; change either dimension freely in your character.sh.
 # Face expression string must be CHAR_CENTER_WIDTH chars wide (parens included).
 # All cells are right-padded and bottom-padded automatically — short content is
 # forgiving. Trailing blank lines can be omitted; leading blank lines must be
 # written. Run `bin/preview.sh` to iterate. Add `--debug` to see cell boundaries.
+#
+# NOTE: cell content below uses trailing spaces for column alignment.
+# Do not configure your editor to strip trailing whitespace in this file.
 
 # ── Cell dimensions ───────────────────────────────────────────────────────────
 CHAR_SIDE_WIDTH=5
@@ -43,7 +46,8 @@ CHAR_FACE_ERROR="( x_x  )"
 # side:  left | right | none (which hand holds the prop)
 TOOL_INFO_EDIT="🔧 focused left"           # Edit, Write
 TOOL_INFO_BASH="🪄 excited right"          # Bash
-TOOL_INFO_SEARCH="🔍 focused left"         # Grep, Glob, ToolSearch, LSP, Monitor
+TOOL_INFO_SEARCH="🔍 focused left"         # Grep, Glob, ToolSearch, LSP
+TOOL_INFO_MONITOR="🔭 thinking left"       # Monitor
 TOOL_INFO_READ="📖 focused left"           # Read
 TOOL_INFO_WEB="📡 thinking right"          # WebFetch, WebSearch
 TOOL_INFO_AGENT="🤖 excited right"         # Agent

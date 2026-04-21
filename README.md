@@ -224,7 +224,8 @@ Available variables and their defaults:
 |---|---|---|---|
 | `TOOL_INFO_EDIT` | `🔧 focused left` | 🔧 wrench | `Edit`, `Write` |
 | `TOOL_INFO_BASH` | `🪄 excited right` | 🪄 wand | `Bash` |
-| `TOOL_INFO_SEARCH` | `🔍 focused left` | 🔍 magnifying glass | `Grep`, `Glob`, `ToolSearch`, `LSP`, `Monitor` |
+| `TOOL_INFO_SEARCH` | `🔍 focused left` | 🔍 magnifying glass | `Grep`, `Glob`, `ToolSearch`, `LSP` |
+| `TOOL_INFO_MONITOR` | `🔭 thinking left` | 🔭 telescope | `Monitor` |
 | `TOOL_INFO_READ` | `📖 focused left` | 📖 book | `Read` |
 | `TOOL_INFO_WEB` | `📡 thinking right` | 📡 satellite dish | `WebFetch`, `WebSearch` |
 | `TOOL_INFO_AGENT` | `🤖 excited right` | 🤖 robot | `Agent` |

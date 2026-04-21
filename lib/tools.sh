@@ -20,7 +20,8 @@ get_tool_info() {
     EnterPlanMode)                             echo "${TOOL_INFO_PLAN_ENTER:-🗺️ thinking left}"  ;;
     ExitPlanMode)                              echo "${TOOL_INFO_PLAN_EXIT:-none excited right}"  ;;
     EnterWorktree|ExitWorktree)                echo "${TOOL_INFO_WORKTREE:-🌿 focused right}"    ;;
-    LSP|Monitor)                               echo "${TOOL_INFO_SEARCH:-🔍 focused left}"       ;;
+    LSP)                                       echo "${TOOL_INFO_SEARCH:-🔍 focused left}"       ;;
+    Monitor)                                   echo "${TOOL_INFO_MONITOR:-🔭 thinking left}"     ;;
     NotebookEdit)                              echo "${TOOL_INFO_NOTEBOOK:-📓 focused right}"    ;;
     PowerShell)                                echo "${TOOL_INFO_POWERSHELL:-💠 focused right}"  ;;
     SendMessage)                               echo "${TOOL_INFO_MESSAGE:-📨 excited right}"     ;;

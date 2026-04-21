@@ -8,16 +8,6 @@ source "$PLUGIN_ROOT/lib/tools.sh"
 
 echo "=== characters/default.sh ==="
 # All 9 grid cell vars must be defined (non-null). Content is design-dependent.
-assert_var_set() {
-  local desc="$1" name="$2"
-  if [[ -n "${!name+x}" ]]; then
-    echo "  ✓ $desc"
-    ((PASS++)) || true
-  else
-    echo "  ✗ $desc — variable $name not set"
-    ((FAIL++)) || true
-  fi
-}
 assert_var_set "CHAR_TOP_LEFT defined"     CHAR_TOP_LEFT
 assert_var_set "CHAR_TOP defined"          CHAR_TOP
 assert_var_set "CHAR_TOP_RIGHT defined"    CHAR_TOP_RIGHT
