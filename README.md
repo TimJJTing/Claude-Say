@@ -6,9 +6,9 @@ A Claude Code plugin that renders conversational replies as ASCII character spee
 ⏺ Skill(claudesay:claudesay)
   ⎿ PreToolUse:Skill says:
 
- ╭──────────╮
- │ Skill    │
- ╰────────┬─╯
+ ╭─────────╮
+ │ Skill   │
+ ╰───────┬─╯
          │
                   
       /\__/\      
@@ -24,7 +24,7 @@ A Claude Code plugin that renders conversational replies as ASCII character spee
  ╭─────────────────────────────╮
  │ Edit →                      │
  │ /path/to/codebase/README.md │
- ╰────────┬────────────────────╯
+ ╰───────┬─────────────────────╯
          │
                   
       /\__/\      
