@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+INPUT=$(cat)
+
 FLAG="${CLAUDE_PROJECT_DIR}/.claude/.claudesay-active"
 [[ -f "$FLAG" ]] || { printf '{"decision":"approve"}\n'; exit 0; }
 
@@ -8,8 +10,6 @@ if ! command -v jq &>/dev/null; then
   printf '{"decision":"approve"}\n'
   exit 0
 fi
-
-INPUT=$(cat)
 
 # Use response_preview (current turn, first 500 chars) instead of transcript.
 # The transcript is written AFTER the Stop hook returns, so transcript-based
