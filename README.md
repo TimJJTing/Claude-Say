@@ -328,10 +328,39 @@ Buddy was a Tamagotchi-style virtual pet — a companion you hatch and tend to. 
 - The raw `<claudesay>` tag appears in the terminal scrollback before the bubble renders (Claude streams it before the Stop hook fires).
 - Figures do not render in CI, `--print` mode, or non-interactive SSH sessions.
 - Per-turn reminder adds ~20 tokens per turn.
+- **Stop-hook bubble reflects only the final assistant text block of a turn.** The Stop hook reads `.last_assistant_message` and grabs the last `<claudesay>` tag in it (`hooks/scripts/stop.sh`, `tail -1`). If Claude emits multiple conversational text messages in one turn (text → tool → text → tool → text), only the tag in the last block renders.
 
-## Compatibility
+  **Why we stop here:** the injected protocol (`hooks/scripts/session-start.sh`) instructs Claude to emit a single tag *at the very end*, with room for ~120 chars / 1-2 sentences in first person covering the whole turn. One well-written bubble usually describes the turn in full, making multi-bubble rendering redundant for the intended use case.
 
-Stacks naturally with the [caveman plugin](https://github.com/JuliusBrussee/caveman). Caveman compresses the main response; claudesay bubbles the separately-written tag. No conflict. `caveman-lite` recommended as a complementary install.
+  **If you want to render a bubble per mid-turn text block**, parse `transcript_path` (available on Stop hook input JSON). The transcript is JSONL, one message per line. Assistant entries look like:
+
+  ```json
+  {"type":"assistant","message":{"role":"assistant","content":[
+    {"type":"thinking", "...": "..."},
+    {"type":"text","text":"<claudesay mood=\"...\">...</claudesay>"},
+    {"type":"tool_use", "...": "..."}
+  ]}}
+  ```
+
+  A turn spans **multiple** assistant entries (one per LLM call, split by tool boundaries). Each has its own `.message.content` array of blocks — `thinking`, `text`, `tool_use`. Steps:
+
+  1. Walk JSONL backwards from EOF.
+  2. Stop at the most recent `type:"user"` entry whose content is not a `tool_result` — that marks the start of the current turn.
+  3. For each assistant entry after that boundary, extract `.message.content[] | select(.type=="text") | .text`.
+  4. Run the existing `<claudesay>` regex over each block; render matches sequentially, or combine into one multi-line bubble.
+
+  Sketch (`jq`):
+
+  ```bash
+  jq -r '
+    select(.type=="assistant")
+    | .message.content[]?
+    | select(.type=="text")
+    | .text
+  ' "$TRANSCRIPT_PATH"
+  ```
+
+  Add guards for missing/malformed/large transcripts. The protocol would also need updating to permit (and describe) mid-turn tags. Not shipped — contributions welcome.
 
 ## Development
 

@@ -1,4 +1,5 @@
 # claudesay Design Spec
+
 _2026-04-17_
 
 ## Overview
@@ -66,10 +67,46 @@ Plugin hooks.json uses a flat format keyed directly by event name — no outer w
 
 ```json
 {
-  "SessionStart":     [{ "hooks": [{ "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh" }] }],
-  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prompt-submit.sh" }] }],
-  "PreToolUse":       [{ "hooks": [{ "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.sh" }] }],
-  "Stop":             [{ "hooks": [{ "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop.sh" }] }]
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh"
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prompt-submit.sh"
+        }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.sh"
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop.sh"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -130,6 +167,7 @@ echo '{"systemMessage": "<claudesay-protocol>\nWhen giving a conversational repl
 ```
 
 `prompt-submit.sh` outputs a compact `systemMessage` reminder with every user turn so Claude never drifts:
+
 ```bash
 echo '{"systemMessage": "[claudesay: end chatty reply with <claudesay mood=\"X\">summary</claudesay>]"}'
 ```
@@ -177,16 +215,16 @@ fi
 
 ### Mood Expressions
 
-| Mood      | Face       | When used                        |
-|-----------|------------|----------------------------------|
-| happy-a   | `( ^ᵕ^  )` | Normal success (variant A)       |
-| happy-b   | `( ᵕ‿ᵕ  )` | Normal success (variant B)       |
-| excited   | `( ^▽^  )` | Big win                          |
-| excited-b | `( ≧▽≦  )` | Very excited                     |
-| thinking  | `( ._.  )` | In progress / uncertain          |
-| focused   | `( -.-  )` | Running a tool                   |
-| upset     | `( >_<  )` | Warning or partial failure       |
-| error     | `( x_x  )` | Actual error                     |
+| Mood      | Face       | When used                  |
+| --------- | ---------- | -------------------------- |
+| happy-a   | `( ^ᵕ^  )` | Normal success (variant A) |
+| happy-b   | `( ᵕ‿ᵕ  )` | Normal success (variant B) |
+| excited   | `( ^▽^  )` | Big win                    |
+| excited-b | `( ≧▽≦  )` | Very excited               |
+| thinking  | `( ._.  )` | In progress / uncertain    |
+| focused   | `( -.-  )` | Running a tool             |
+| upset     | `( >_<  )` | Warning or partial failure |
+| error     | `( x_x  )` | Actual error               |
 
 Positive moods rotate between variants on each render to avoid repetition.
 
@@ -194,20 +232,21 @@ Positive moods rotate between variants on each render to avoid repetition.
 
 Each tool entry has a `side` field (`left`/`right`) controlling which hand holds the prop. "Reaching out" tools (searching, reading, fetching) use the left hand; "doing" tools (editing, running, spawning) use the right.
 
-| Tool(s)              | Prop          | Mood     | Side  |
-|----------------------|---------------|----------|-------|
-| Edit, Write          | 🔧 wrench     | focused  | left  |
-| Bash                 | 🪄 magic wand | focused  | right |
-| Grep, Glob           | 🔍 magnifier  | thinking | left  |
-| Read                 | 📖 book       | thinking | left  |
-| WebFetch, WebSearch  | 📡 antenna    | thinking | right |
-| Agent (spawn)        | 🤖 buddy      | excited  | right |
-| TodoWrite            | 📋 clipboard  | focused  | left  |
-| default              | (none)        | focused  | —     |
+| Tool(s)             | Prop          | Mood     | Side  |
+| ------------------- | ------------- | -------- | ----- |
+| Edit, Write         | 🔧 wrench     | focused  | left  |
+| Bash                | 🪄 magic wand | focused  | right |
+| Grep, Glob          | 🔍 magnifier  | thinking | left  |
+| Read                | 📖 book       | thinking | left  |
+| WebFetch, WebSearch | 📡 antenna    | thinking | right |
+| Agent (spawn)       | 🤖 buddy      | excited  | right |
+| TodoWrite           | 📋 clipboard  | focused  | left  |
+| default             | (none)        | focused  | —     |
 
 ### Rendered Output Examples
 
 **Chat reply (Stop hook):**
+
 ```
 ...Claude's full response above...
 <claudesay mood="excited">All 3 tests pass now!</claudesay>
@@ -215,7 +254,7 @@ Each tool entry has a `side` field (`left`/`right`) controlling which hand holds
  ╭────────────────────────────────╮
  │   All 3 tests pass now!        │
  ╰────╮───────────────────────────╯
-      │                 
+      │
     /\__/\
    ( ≧▽≦  )
   m( ,,,, )m
@@ -224,6 +263,7 @@ Each tool entry has a `side` field (`left`/`right`) controlling which hand holds
 ```
 
 **Tool state (PreToolUse), prop on right (Edit):**
+
 ```
  ╭─────────────────────────────────╮
  │   Edit → src/utils.py           │
@@ -237,6 +277,7 @@ Each tool entry has a `side` field (`left`/`right`) controlling which hand holds
 ```
 
 **Tool state (PreToolUse), prop on left (Read):**
+
 ```
  ╭─────────────────────────────────╮
  │   Read → src/utils.py           │
@@ -275,20 +316,14 @@ CHAR_BOTTOM="    ||   ||\`~~>\n   (_)  (_)" # the rest of the character, can hav
 
 ## Edge Cases
 
-| Scenario | Behaviour |
-|---|---|
-| Claude omits `<claudesay>` tag | stop.sh exits silently — no duplicate output |
-| Multiple tags in one response | Take the last one |
-| Tool input path > 50 chars | Truncate with `…` |
-| Message > 45 chars wide | Wrap to multiple bubble lines |
-| Custom character missing a mood | Fall back to default character expression |
-| Custom character missing `CHAR_HAND_LEFT` or `CHAR_HAND_RIGHT` | Fall back to `m` for each |
-| Tool entry has no `side` or side is `—` | No prop shown, both hands rendered normally |
-| `jq` not installed | `/claudesay on` preflight check detects this and prints install instructions; hooks exit 0 silently if somehow reached |
-| Flag absent | All hooks exit at line 2 — zero overhead |
-
----
-
-## Caveman Compatibility
-
-`claudesay` stacks naturally with the caveman plugin. Caveman compresses the main response body; `claudesay` bubbles the separately-written summary tag. No conflict. README recommends `caveman-lite` as a complementary install.
+| Scenario                                                       | Behaviour                                                                                                              |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Claude omits `<claudesay>` tag                                 | stop.sh exits silently — no duplicate output                                                                           |
+| Multiple tags in one response                                  | Take the last one                                                                                                      |
+| Tool input path > 50 chars                                     | Truncate with `…`                                                                                                      |
+| Message > 45 chars wide                                        | Wrap to multiple bubble lines                                                                                          |
+| Custom character missing a mood                                | Fall back to default character expression                                                                              |
+| Custom character missing `CHAR_HAND_LEFT` or `CHAR_HAND_RIGHT` | Fall back to `m` for each                                                                                              |
+| Tool entry has no `side` or side is `—`                        | No prop shown, both hands rendered normally                                                                            |
+| `jq` not installed                                             | `/claudesay on` preflight check detects this and prints install instructions; hooks exit 0 silently if somehow reached |
+| Flag absent                                                    | All hooks exit at line 2 — zero overhead                                                                               |
