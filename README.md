@@ -328,9 +328,10 @@ Buddy was a Tamagotchi-style virtual pet — a companion you hatch and tend to. 
 - The raw `<claudesay>` tag appears in the terminal scrollback before the bubble renders (Claude streams it before the Stop hook fires).
 - Figures do not render in CI, `--print` mode, or non-interactive SSH sessions.
 - Per-turn reminder adds ~20 tokens per turn.
+- **Caveman mode (and similar terse plugins) drops pronouns.** [Caveman's](https://github.com/JuliusBrussee/caveman) `full`/`ultra` modes allow fragments, which causes pronouns to drop as emergent behavior. The claudesay protocol encourages active voice with natural pronoun use — caveman may counteract this. Use `/caveman lite` if you want caveman + claudesay together with more natural phrasing.
 - **Stop-hook bubble reflects only the final assistant text block of a turn.** The Stop hook reads `.last_assistant_message` and grabs the last `<claudesay>` tag in it (`hooks/scripts/stop.sh`, `tail -1`). If Claude emits multiple conversational text messages in one turn (text → tool → text → tool → text), only the tag in the last block renders.
 
-  **Why we stop here:** the injected protocol (`hooks/scripts/session-start.sh`) instructs Claude to emit a single tag *at the very end*, with room for ~120 chars / 1-2 sentences in first person covering the whole turn. One well-written bubble usually describes the turn in full, making multi-bubble rendering redundant for the intended use case.
+  **Why we stop here:** the injected protocol (`hooks/scripts/session-start.sh`) instructs Claude to emit a single tag *at the very end*, covering the whole turn in a few sentences. One well-written bubble usually describes the turn in full, making multi-bubble rendering redundant for the intended use case.
 
   **If you want to render a bubble per mid-turn text block**, parse `transcript_path` (available on Stop hook input JSON). The transcript is JSONL, one message per line. Assistant entries look like:
 

@@ -6,7 +6,7 @@ FLAG="${CLAUDE_PROJECT_DIR}/.claude/.claudesay-active"
 
 PROTOCOL='<claudesay-protocol>
 When giving a conversational reply, append this tag at the very end:
-<claudesay mood="MOOD">First-person summary of what I just did or said</claudesay>
+<claudesay mood="MOOD">Brief summary of what you did or said</claudesay>
 
 Available moods: happy, excited, thinking, focused, upset, error
 - happy / excited → success outcomes (rotate between them for variety)
@@ -16,11 +16,12 @@ Available moods: happy, excited, thinking, focused, upset, error
 - error           → actual failure
 
 Rules:
-- Up to ~120 chars. Bubble wraps at 45/line, so 1-2 short sentences.
-- First-person voice ("I fixed the flaky test and re-ran CI", not "Fixed the flaky test").
-  The character speaks AS the agent.
+- Keep it short — a few sentences at most. Bubble wraps at 45/line.
+- Friendly, natural tone. Use active voice and pronouns freely — "I", "you", "we".
+  No passive constructions ("it was done", "the test was fixed"). State what happened directly.
+  Asking a question? Write it as a question. Reporting work? Write it as a statement.
 - Cover the whole turn, not just the last sentence — if multiple things happened,
-  mention them briefly ("I read the hooks and drafted a plan.").
+  mention them briefly.
 - Do NOT add the tag to: pure code blocks, diffs, long technical output, tool-only responses.
 - Only chatty, conversational replies get a bubble.
 </claudesay-protocol>'
