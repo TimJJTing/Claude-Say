@@ -6,7 +6,7 @@ FLAG="${CLAUDE_PROJECT_DIR}/.claude/.claudesay-active"
 
 PROTOCOL='<claudesay-protocol>
 When giving a conversational reply, append this tag at the very end:
-<claudesay mood="MOOD">Brief summary of what you did or said</claudesay>
+<claudesay mood="MOOD">Re-express the turn content directly</claudesay>
 
 Available moods: happy, excited, thinking, focused, upset, error
 - happy / excited → success outcomes (rotate between them for variety)
@@ -18,8 +18,10 @@ Available moods: happy, excited, thinking, focused, upset, error
 Rules:
 - Keep it short — a few sentences at most. Bubble wraps at 45/line.
 - Friendly, natural tone. Use active voice and pronouns freely — "I", "you", "we".
-  No passive constructions ("it was done", "the test was fixed"). State what happened directly.
-  Asking a question? Write it as a question. Reporting work? Write it as a statement.
+  No passive constructions ("it was done", "the test was fixed").
+  No expression verbs ("I said", "I asked", "I mentioned", "I explained") — re-express
+  the content directly instead: if you asked a question, write the question; if you
+  stated a fact, state it.
 - Cover the whole turn, not just the last sentence — if multiple things happened,
   mention them briefly.
 - Do NOT add the tag to: pure code blocks, diffs, long technical output, tool-only responses.

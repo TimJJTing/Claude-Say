@@ -3,36 +3,48 @@
 A Claude Code plugin that renders conversational replies as ASCII character speech bubbles in the terminal. Tool-use events show the character holding a relevant prop with a context-appropriate face expression. Inspired by cowsay. Just for fun.
 
 ```
+⏺ Hey! claudesay is live and working.
+  ⎿  Stop says:
+      ╭──────────────────────────────────────╮
+      │ Hey! claudesay is live and working.  │
+      ╰───────┬──────────────────────────────╯
+              │
+
+           /\__/\
+          ( ᵕ‿ᵕ  )
+        ╭╭: ,,,, :╮╮
+        ○ (      ) ○
+          (╭....╮)
+         (_)    (_)╰~~>
+
 ⏺ Skill(claudesay:claudesay)
-  ⎿ PreToolUse:Skill says:
+  ⎿  PreToolUse:Skill says:
+      ╭─────────╮
+      │ Skill   │
+      ╰───────┬─╯
+              │
 
- ╭─────────╮
- │ Skill   │
- ╰───────┬─╯
-         │
-                  
-      /\__/\      
-     ( ≧▽≦  )     
-   ╭╭: ,,,, :╮╮   
-   ○ (      ) ○   
-     (╭....╮)     
-    (_)    (_)╰~~>
+           /\__/\
+          ( ≧▽≦  )
+      🍳○═: ,,,, :╮╮
+          (      ) ○
+          (╭....╮)
+         (_)    (_)╰~~>
 
-⏺ Update(README.md)
-  ⎿ PreToolUse:Edit says:
+⏺ Update(path/to/project/README.md)
+  ⎿  PreToolUse:Edit says:
+      ╭────────────────────────────╮
+      │ Edit →                     │
+      │ /path/to/project/README.md │
+      ╰───────┬────────────────────╯
+              │
 
- ╭─────────────────────────────╮
- │ Edit →                      │
- │ /path/to/codebase/README.md │
- ╰───────┬─────────────────────╯
-         │
-                  
-      /\__/\      
-     ( -.-  )     
- 🔧○═: ,,,, :╮╮   
-     (      ) ○   
-     (╭....╮)     
-    (_)    (_)╰~~>
+           /\__/\
+          ( -.-  )
+      🔧○═: ,,,, :╮╮
+          (      ) ○
+          (╭....╮)
+         (_)    (_)╰~~>
 
 ```
 
@@ -40,7 +52,7 @@ A Claude Code plugin that renders conversational replies as ASCII character spee
 
 claudesay is built entirely on [Claude Code hooks](https://docs.anthropic.com/en/docs/claude-code/hooks) — small shell scripts that run at specific points in Claude's lifecycle. No external server, no background process, just four Bash scripts that react to events:
 
-1. **Session starts →** A short instruction is injected into the conversation telling Claude to end chatty replies with a `<claudesay>` tag containing a mood and a one-line summary.
+1. **Session starts →** A short instruction is injected into the conversation telling Claude to end chatty replies with a `<claudesay>` tag containing a mood and a brief summary of the turn.
 
 2. **You send a prompt →** The hook checks whether you typed a toggle command (like `turn on claudesay`). If so, it flips the flag file and blocks Claude's turn entirely — Claude never sees the message. For anything else, it appends a short reminder so Claude remembers to include the tag.
 
